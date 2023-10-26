@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>URL Shortener</title>
+	<style>
+		body {
+			background-image: white;
+			background-size: cover;
+			font-family: 'Arial', sans-serif;
+			margin: 0;
+			padding: 0;
+		}
+
+		header {
+			background-color: #333;
+			color: #fff;
+			padding: 20px;
+			text-align: center;
+			font-size: 24px;
+		}
+
+		nav {
+			background-color: #444;
+			text-align: center;
+		}
+
+		nav a {
+			color: #fff;
+			text-decoration: none;
+			padding: 15px 20px;
+			font-size: 18px;
+		}
+
+		nav a:hover {
+			background-color: #555;
+		}
+
+		.container {
+			max-width: 600px;
+			margin: 0 auto;
+			padding: 20px;
+			background-color: rgba(255, 255, 255, 0.8);
+			border-radius: 5px;
+			box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+		}
+
+		label {
+			display: block;
+			font-weight: bold;
+			font-size: 18px;
+		}
+
+		input[type="text"] {
+			width: 100%;
+			padding: 10px;
+			margin-bottom: 10px;
+			border: 1px solid #ccc;
+			border-radius: 5px;
+			font-size: 16px;
+		}
+
+		button {
+			background-color: #333;
+			color: #fff;
+			padding: 10px 20px;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+			font-size: 18px;
+		}
+
+		button:hover {
+			background-color: #444;
+		}
+
+		#shortened-url {
+			display: none;
+			margin-top: 20px;
+		}
+
+		#short-link {
+			color: #0077cc;
+			font-size: 16px;
+		}
+
+		.additional-input {
+			display: none;
+		}
+	</style>
+</head>
+
+<body>
+	<header>
+		Linkify - Zip URLs for free
+	</header>
+	<nav>
+		<a href="#">Home</a>
+		<a href="#">Analytics</a>
+		<a href="#">About</a>
+	</nav>
+	<div class="container">
+		<h2>Shorten a URL</h2>
+		<label for="url">URL to Shorten:</label>
+		<input type="text" id="url" placeholder="Enter your URL">
+
+		<div id="shortened-url">
+			<p><strong>Shortened URL:</strong></p>
+			<a id="short-link" href="" target="_blank"></a>
+		</div>
+		<!-- New checkbox for additional input -->
+		<label for="include-string">Custom URL:</label>
+		<input type="checkbox" id="include-string" onchange="toggleAdditionalInput()">
+		<!-- Additional input field (initially hidden) -->
+		<div class="additional-input" id="string-input">
+			<input type="text" id="string" placeholder="Enter custom URL">
+		</div>
+
+		<div>
+			<button onclick="shortenUrl()">Generate Link</button>
+		</div>
+	</div>
+
+	<script>
+		function toggleAdditionalInput() {
+			const checkbox = document.getElementById("include-string");
+			const stringInput = document.getElementById("string-input");
+
+			if (checkbox.checked) {
+				stringInput.style.display = "block";
+			} else {
+				stringInput.style.display = "none";
+			}
+		}
+		function isValidURL(url) {
+			try {
+				new URL(url);
+				return true;
+			} catch (error) {
+
+				return false;
+			}
+		}
+		function shortenUrl() {
+			const longUrl = document.getElementById("url").value;
+			const includeString = document.getElementById("include-string").checked;
+			const string = document.getElementById("string").value;
+			// Define the URL of your local server for testing.
+			const apiUrl = 'http://localhost:8082/shorten';
+
+
+			//Verifu YRL
+			if (isValidURL(longUrl)) {
+				console.log("Valid URL");
+			} else {
+				console.log("Invalid URL");
+			}
+			// Define the data to send in the request body, typically as JSON.
+			const data = {longUrl: longUrl, customString: includeString};
+
+			// Create a new XMLHttpRequest object.
+			const xhr = new XMLHttpRequest();
+
+			// Configure the request with the method, URL, and async flag.
+			xhr.open("GET", apiUrl, true);
+
+			// Set the request headers (content type in this case).
+			xhr.setRequestHeader("Content-Type", "application/json");
+			xhr.setRequestHeader("inputUrl", longUrl);
+			// Define a callback function to handle the response.
+			xhr.onload = function () {
+				if (xhr.status === 200) {
+					// Request was successful; handle the response here.
+					const result = JSON.parse(xhr.responseText);
+					const shortenedUrl = result.shortUrl;
+					document.getElementById("short-link").href = shortenedUrl;
+					document.getElementById("short-link").textContent = shortenedUrl;
+					document.getElementById("shortened-url").style.display = 'block';
+				} else {
+					// Request failed; handle the error.
+					console.error('Request failed with status:', xhr.status);
+				}
+			};
+
+			// Handle network errors (e.g., server not available).
+			xhr.onerror = function () {
+				console.error('Network error occurred.');
+			};
+
+			// Send the request with the JSON-encoded data.
+			xhr.send(JSON.stringify(data));
+		}
+	</script>
+</body>
+
+</html>
