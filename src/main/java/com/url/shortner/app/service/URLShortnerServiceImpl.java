@@ -7,15 +7,27 @@ import java.util.Map;
 
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.url.shortner.app.db.RedisDBServiceImpl;
 
 import java.nio.charset.StandardCharsets;
-
+@Component
 public class URLShortnerServiceImpl {
 	@Autowired
 	static RedisDBServiceImpl redisDBServiceImpl = new RedisDBServiceImpl();
+	
+    private static String appDomain = System.getenv("");
+	@Value("${my-app-domain}")
+    public void setAppDomain(String domain) {
+        appDomain = domain;
+    }
+
+    public static String getAppDomain() {
+        return appDomain;
+    }
 
 //	public static void main(String[] args) {
 //		System.out.println(shortenURL(
@@ -48,7 +60,7 @@ public class URLShortnerServiceImpl {
 			String shortUrlKey = shortenedURL.toString();
 
 			JSONObject response = new JSONObject();
-			response.put("shortUrl", "http://linkify.url/"+shortUrlKey);
+			response.put("shortUrl", appDomain+shortUrlKey);
 
 			// Put inside database and then return.
 			if (putURLIntoDB(url, shortUrlKey).equalsIgnoreCase("OK"))
