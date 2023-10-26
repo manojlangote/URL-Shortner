@@ -3,6 +3,7 @@ package com.url.shortner.app.service;
 import java.security.MessageDigest;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,13 +45,13 @@ public class URLShortnerServiceImpl {
 				// Append the corresponding character to the shortened URL
 				shortenedURL.append(base62Chars.charAt(index));
 			}
-			String shortUrl = "https://short.url/" + shortenedURL.toString();
+			String shortUrlKey = shortenedURL.toString();
 
 			JSONObject response = new JSONObject();
-			response.put("shortUrl", shortUrl);
+			response.put("shortUrl", "http://linkify.url/"+shortUrlKey);
 
 			// Put inside database and then return.
-			if (putURLIntoDB(url, shortUrl).equalsIgnoreCase("OK"))
+			if (putURLIntoDB(url, shortUrlKey).equalsIgnoreCase("OK"))
 				return response;
 			else {
 				response.put("shortUrl", null);
@@ -63,11 +64,17 @@ public class URLShortnerServiceImpl {
 		return null;
 	}
 
-	public static String putURLIntoDB(String url, String shortUrl) {
+	public static String putURLIntoDB(String url, String shortUrlKey) {
 		HashMap<String, String> map = new HashMap<>();
 		map.put("DestinationURL", url);
 		map.put("HitCount", "0");
-		return redisDBServiceImpl.setData(shortUrl, map);
+		return redisDBServiceImpl.setData(shortUrlKey, map);
+	}
+	public static String getURLFromDB(String shortUrl) {
+		Map<String, String> urlData = redisDBServiceImpl.getData(shortUrl);
+		urlData.put("HitCount", urlData.get("HitCount")+1);
+		redisDBServiceImpl.setData(shortUrl, urlData);
+		return urlData.get("DestinationURL");
 	}
 
 }
