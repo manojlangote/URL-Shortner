@@ -7,11 +7,12 @@ import org.springframework.stereotype.Service;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+
 @Service
 public class RedisDBServiceImpl {
 	static JedisPool pool = null;
 
-	public RedisDBServiceImpl(){
+	public RedisDBServiceImpl() {
 	}
 
 	public static JedisPool getInstance() {
@@ -20,28 +21,25 @@ public class RedisDBServiceImpl {
 		return pool;
 	}
 
-	public static void main(String[] args) {
-		JedisPool redisDBInstance = RedisDBServiceImpl.getInstance();
-		RedisDBServiceImpl red = new RedisDBServiceImpl();
-		
-		try (Jedis jedis = redisDBInstance.getResource()) {
-			jedis.set("name", "Manoj");
-			System.out.println(jedis.get("name"));
-			System.out.println(jedis.get("name1"));
-
-			Map<String, String> hash = new HashMap<>();
-			;
-			hash.put("shortUrl", "John");
-			jedis.hmset("user-session:123", hash);
-			System.out.println(jedis.hgetAll("user-session:123"));
-
-			System.out.println(jedis.ping());
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-	}
+	/*
+	 * public static void main(String[] args) { JedisPool redisDBInstance =
+	 * RedisDBServiceImpl.getInstance(); RedisDBServiceImpl red = new
+	 * RedisDBServiceImpl();
+	 * 
+	 * try (Jedis jedis = redisDBInstance.getResource()) { jedis.set("name",
+	 * "Manoj"); System.out.println(jedis.get("name"));
+	 * System.out.println(jedis.get("name1"));
+	 * 
+	 * Map<String, String> hash = new HashMap<>(); ; hash.put("shortUrl", "John");
+	 * jedis.hmset("user-session:123", hash);
+	 * System.out.println(jedis.hgetAll("user-session:123"));
+	 * 
+	 * System.out.println(jedis.ping());
+	 * 
+	 * } catch (Exception e) { e.printStackTrace(); }
+	 * 
+	 * }
+	 */
 
 	public Map<String, String> getData(String key) {
 		JedisPool redisDBInstance = RedisDBServiceImpl.getInstance();
@@ -72,7 +70,7 @@ public class RedisDBServiceImpl {
 			return 0;
 		}
 	}
-	
+
 	public String pingRedis() {
 		JedisPool redisDBInstance = RedisDBServiceImpl.getInstance();
 		try (Jedis jedis = redisDBInstance.getResource()) {

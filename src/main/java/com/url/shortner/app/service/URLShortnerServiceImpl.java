@@ -14,20 +14,22 @@ import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.url.shortner.app.db.RedisDBServiceImpl;
 
 import java.nio.charset.StandardCharsets;
+
 @Component
 public class URLShortnerServiceImpl {
 	@Autowired
 	static RedisDBServiceImpl redisDBServiceImpl = new RedisDBServiceImpl();
-	
-    private static String appDomain = System.getenv("");
-	@Value("${my-app-domain}")
-    public void setAppDomain(String domain) {
-        appDomain = domain;
-    }
 
-    public static String getAppDomain() {
-        return appDomain;
-    }
+	private static String appDomain = System.getenv("");
+
+	@Value("${my-app-domain}")
+	public void setAppDomain(String domain) {
+		appDomain = domain;
+	}
+
+	public static String getAppDomain() {
+		return appDomain;
+	}
 
 //	public static void main(String[] args) {
 //		System.out.println(shortenURL(
@@ -60,7 +62,7 @@ public class URLShortnerServiceImpl {
 			String shortUrlKey = shortenedURL.toString();
 
 			JSONObject response = new JSONObject();
-			response.put("shortUrl", appDomain+shortUrlKey);
+			response.put("shortUrl", appDomain + shortUrlKey);
 
 			// Put inside database and then return.
 			if (putURLIntoDB(url, shortUrlKey).equalsIgnoreCase("OK"))
@@ -82,9 +84,10 @@ public class URLShortnerServiceImpl {
 		map.put("HitCount", "0");
 		return redisDBServiceImpl.setData(shortUrlKey, map);
 	}
+
 	public static String getURLFromDB(String shortUrl) {
 		Map<String, String> urlData = redisDBServiceImpl.getData(shortUrl);
-		urlData.put("HitCount", urlData.get("HitCount")+1);
+		urlData.put("HitCount", urlData.get("HitCount") + 1);
 		redisDBServiceImpl.setData(shortUrl, urlData);
 		return urlData.get("DestinationURL");
 	}
