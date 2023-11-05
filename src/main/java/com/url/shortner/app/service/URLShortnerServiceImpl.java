@@ -37,8 +37,17 @@ public class URLShortnerServiceImpl {
 //	}
 
 	@SuppressWarnings("unchecked")
-	public static JSONObject shortenURL(String url, int length) {
+	public static JSONObject shortenURL(String url, String customInput, int length) {
 		try {
+			JSONObject response = new JSONObject();
+			if(customInput != null && !customInput.isEmpty() && !customInput.equals("null")) {
+				if(!RedisDBServiceImpl.doesKeyExist(customInput)) {
+					return putRecord(url, customInput);
+				}
+				response.put("shortUrl", null);
+				response.put("Message", "Key already exist, Please insert unique key.");
+				return response;
+			}
 			// Calculate SHA-256 hash
 			MessageDigest digest = MessageDigest.getInstance("SHA-256");
 			byte[] hash = digest.digest(url.getBytes(StandardCharsets.UTF_8));
@@ -61,16 +70,8 @@ public class URLShortnerServiceImpl {
 			}
 			String shortUrlKey = shortenedURL.toString();
 
-			JSONObject response = new JSONObject();
-			response.put("shortUrl", appDomain + shortUrlKey);
-
-			// Put inside database and then return.
-			if (putURLIntoDB(url, shortUrlKey).equalsIgnoreCase("OK"))
-				return response;
-			else {
-				response.put("shortUrl", null);
-				return response;
-			}
+			
+			return putRecord(url, shortUrlKey);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -90,6 +91,16 @@ public class URLShortnerServiceImpl {
 		urlData.put("HitCount", urlData.get("HitCount") + 1);
 		redisDBServiceImpl.setData(shortUrl, urlData);
 		return urlData.get("DestinationURL");
+	}
+	@SuppressWarnings("unchecked")
+	public static JSONObject putRecord(String url, String shortURL) {
+		JSONObject response = new JSONObject();
+		if (putURLIntoDB(url, shortURL).equalsIgnoreCase("OK")) {
+			response.put("shortUrl", appDomain + shortURL);
+			return response;
+		}
+			response.put("shortUrl", null);
+			return response;
 	}
 
 }

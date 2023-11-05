@@ -35,8 +35,8 @@ public class RequestMappingImpl {
 
 	@GetMapping("/shorten")
 	@ResponseBody
-	public JSONObject getShortURL(@RequestHeader("inputUrl") String inputUrl) {
-		return URLShortnerServiceImpl.shortenURL(inputUrl, 8);
+	public JSONObject getShortURL(@RequestHeader("inputUrl") String inputUrl, @RequestHeader("customUrlData") String customInput) {
+		return URLShortnerServiceImpl.shortenURL(inputUrl,customInput, 8);
 	}
 
 	@GetMapping("/{shortUrl}")

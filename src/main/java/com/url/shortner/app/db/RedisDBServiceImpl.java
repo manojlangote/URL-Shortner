@@ -1,7 +1,6 @@
 package com.url.shortner.app.db;
-
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
@@ -80,4 +79,23 @@ public class RedisDBServiceImpl {
 		}
 	}
 
+	public static Set<String> getAllKeys() {
+		JedisPool redisDBInstance = RedisDBServiceImpl.getInstance();
+		try (Jedis jedis = redisDBInstance.getResource()) {
+			return jedis.keys("*");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static boolean doesKeyExist(String key) {
+		JedisPool redisDBInstance = RedisDBServiceImpl.getInstance();
+		try (Jedis jedis = redisDBInstance.getResource()) {
+			return jedis.exists(key);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return true;
+	}
 }
