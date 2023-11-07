@@ -17,6 +17,22 @@ import java.nio.charset.StandardCharsets;
 
 @Component
 public class URLShortnerServiceImpl {
+	private static final String HASH_KEY_ALLOWED_CHAR = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+	private static final String PROP_DESTINATION_URL = "DestinationURL";
+
+	private static final String PROP_INFO = "INFO";
+
+	private static final String PROP_HIT_COUNT = "HitCount";
+
+	private static final String PROP_SHORT_URL = "shortUrl";
+
+	private static final String PROP_MESSAGE = "Message";
+
+	private static final String PROP_SEVERITY = "severity";
+
+	private static final String PROP_ERROR = "ERROR";
+
 	@Autowired
 	static RedisDBServiceImpl redisDBServiceImpl = new RedisDBServiceImpl();
 
@@ -40,12 +56,14 @@ public class URLShortnerServiceImpl {
 	public static JSONObject shortenURL(String url, String customInput, int length) {
 		try {
 			JSONObject response = new JSONObject();
-			if(customInput != null && !customInput.isEmpty() && !customInput.equals("null")) {
-				if(!RedisDBServiceImpl.doesKeyExist(customInput)) {
+
+			if (customInput != null && !customInput.isEmpty() && !customInput.equals("null")) {
+				if (!RedisDBServiceImpl.doesKeyExist(customInput)) {
 					return putRecord(url, customInput);
 				}
-				response.put("shortUrl", null);
-				response.put("Message", "Key already exist, Please insert unique key.");
+				response.put(PROP_SHORT_URL, null);
+				response.put(PROP_SEVERITY, PROP_ERROR);
+				response.put(PROP_MESSAGE, "Custom URL already exist, Please insert unique custom URL.");
 				return response;
 			}
 			// Calculate SHA-256 hash
@@ -57,7 +75,7 @@ public class URLShortnerServiceImpl {
 			System.arraycopy(hash, 0, truncatedHash, 0, length);
 
 			// Convert to a string of only lowercase and uppercase letters and numbers
-			String base62Chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+			String base62Chars = HASH_KEY_ALLOWED_CHAR;
 			StringBuilder shortenedURL = new StringBuilder();
 
 			for (byte b : truncatedHash) {
@@ -70,7 +88,6 @@ public class URLShortnerServiceImpl {
 			}
 			String shortUrlKey = shortenedURL.toString();
 
-			
 			return putRecord(url, shortUrlKey);
 
 		} catch (Exception e) {
@@ -81,26 +98,31 @@ public class URLShortnerServiceImpl {
 
 	public static String putURLIntoDB(String url, String shortUrlKey) {
 		HashMap<String, String> map = new HashMap<>();
-		map.put("DestinationURL", url);
-		map.put("HitCount", "0");
+		map.put(PROP_DESTINATION_URL, url);
+		map.put(PROP_HIT_COUNT, "0");
 		return redisDBServiceImpl.setData(shortUrlKey, map);
 	}
 
 	public static String getURLFromDB(String shortUrl) {
 		Map<String, String> urlData = redisDBServiceImpl.getData(shortUrl);
-		urlData.put("HitCount", urlData.get("HitCount") + 1);
+		urlData.put(PROP_HIT_COUNT, urlData.get(PROP_HIT_COUNT) + 1);
 		redisDBServiceImpl.setData(shortUrl, urlData);
-		return urlData.get("DestinationURL");
+		return urlData.get(PROP_DESTINATION_URL);
 	}
+
 	@SuppressWarnings("unchecked")
 	public static JSONObject putRecord(String url, String shortURL) {
 		JSONObject response = new JSONObject();
 		if (putURLIntoDB(url, shortURL).equalsIgnoreCase("OK")) {
-			response.put("shortUrl", appDomain + shortURL);
+			response.put(PROP_SHORT_URL, appDomain + shortURL);
+			response.put(PROP_SEVERITY, PROP_INFO);
+			response.put(PROP_MESSAGE, "Record inserted with short URL" + appDomain + shortURL);
 			return response;
 		}
-			response.put("shortUrl", null);
-			return response;
+		response.put(PROP_SEVERITY, PROP_ERROR);
+		response.put(PROP_MESSAGE, "Record is not inserted with short URL" + appDomain + shortURL);
+		response.put(PROP_SHORT_URL, null);
+		return response;
 	}
 
 }
